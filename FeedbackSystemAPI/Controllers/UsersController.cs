@@ -86,7 +86,11 @@ namespace FeedbackSystemAPI.Controllers
         {
             user = await _context.Users.Where(u => u.Email == user.Email && u.Password == user.Password).FirstOrDefaultAsync();
 
-            UserWithToken userWithToken = new UserWithToken(user);
+            
+           
+                UserWithToken userWithToken = new UserWithToken(user);
+           
+
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);
