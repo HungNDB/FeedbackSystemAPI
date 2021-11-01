@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FeedbackSystemAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FeedbackSystemAPI.Controllers
 {
@@ -39,6 +40,12 @@ namespace FeedbackSystemAPI.Controllers
             }
 
             return feedback;
+        }
+
+        [HttpGet("{UserId}/Feedback")]
+        public async Task<ActionResult<IEnumerable<Feedback>>> GetDevicesbys([FromQuery] string UserId)
+        {
+            return await _context.Feedbacks.Where(f => f.UserId == UserId).ToListAsync();
         }
 
         // PUT: api/Feedbacks/5
