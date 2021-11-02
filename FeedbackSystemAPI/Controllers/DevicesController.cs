@@ -48,7 +48,8 @@ namespace FeedbackSystemAPI.Controllers
         [HttpGet("{locationId}/Devices")]
         public async Task<ActionResult<IEnumerable<Device>>> GetDevicesbys([FromQuery] string locationId)
         {
-            return await _context.Devices.Where(d => d.LocationId == locationId).ToListAsync();
+            return await _context.Devices.Include(d => d.Feedbacks)
+                .Where(d => d.LocationId == locationId).ToListAsync();
         }
 
 

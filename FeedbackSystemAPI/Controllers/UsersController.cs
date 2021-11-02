@@ -48,6 +48,17 @@ namespace FeedbackSystemAPI.Controllers
             return user;
         }
 
+        [HttpGet("{UserId})]
+        public async Task<ActionResult<User>> GetDevicesbys([FromQuery] string UserId)
+        {
+            return await _context.Users.Include(d => d.AssignTasks).ThenInclude(AssignTask => AssignTask.Task)
+                .Where(d => d.UserId == UserId).FirstAsync();
+        }
+
+
+
+
+
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -85,12 +96,8 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<ActionResult<UserWithToken>> PostUser([FromBody] User user)
         {
             user = await _context.Users.Where(u => u.Email == user.Email && u.Password == user.Password).FirstOrDefaultAsync();
-
-            
-           
+    
                 UserWithToken userWithToken = new UserWithToken(user);
-           
-
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);

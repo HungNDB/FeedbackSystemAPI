@@ -45,7 +45,8 @@ namespace FeedbackSystemAPI.Controllers
         [HttpGet("{UserId}/Feedback")]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetDevicesbys([FromQuery] string UserId)
         {
-            return await _context.Feedbacks.Where(f => f.UserId == UserId).ToListAsync();
+            return await _context.Feedbacks.Include(f => f.Device)
+                .Where(f => f.UserId == UserId).ToListAsync();
         }
 
         // PUT: api/Feedbacks/5
