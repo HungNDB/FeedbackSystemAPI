@@ -14,7 +14,6 @@ namespace FeedbackSystemAPI.Models
         {
             this.UserId = user.RoleId;
             this.Email = user.Email;
-            this.Password = user.Password;
             this.RoleId = user.RoleId;
             this.Name = user.Name;
             this.PhoneNumber = user.PhoneNumber;
