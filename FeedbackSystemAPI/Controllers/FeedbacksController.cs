@@ -35,7 +35,8 @@ namespace FeedbackSystemAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacks()
         {
-            return await _context.Feedbacks.ToListAsync();
+            return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
+                        .ToListAsync();
         }
 
         // GET: api/Feedbacks/5
