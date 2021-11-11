@@ -41,7 +41,13 @@ namespace FeedbackSystemAPI.Controllers
             return assignTask;
         }
 
-        
+        [HttpGet("{UserId}/GetTaskUsers")]
+        public async Task<ActionResult<User>> GetTaskUsers([FromQuery] string UserId)
+        {
+            return await _context.Users.Include(d => d.AssignTasks).ThenInclude(AssignTask => AssignTask.Task)
+                .Where(d => d.UserId == UserId).FirstAsync();
+        }
+
 
         // PUT: api/AssignTasks/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

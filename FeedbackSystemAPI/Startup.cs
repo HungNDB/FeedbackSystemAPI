@@ -16,10 +16,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace FeedbackSystemAPI
 {
@@ -66,15 +66,16 @@ namespace FeedbackSystemAPI
 
             // Make authentication compulsory across the board (i.e. shut
             // down EVERYTHING unless explicitly opened up).
-            services.AddMvc(config =>
-            {
-                var policy = new AuthorizationPolicyBuilder()
-                                 .RequireAuthenticatedUser()
-                                 .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
-                config.RespectBrowserAcceptHeader = true;
-                config.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-            });            
+            
+
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
+            //to validate the token which has been sent by clients
+
+            ;
+
             services.AddAuthentication(o =>
             {
                 o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -114,7 +115,37 @@ namespace FeedbackSystemAPI
 
             //to validate the token which has been sent by clients
 
-           
+            //var appSettings = jwtSection.Get<JWTSettings>();
+            //var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
+
+            //services.AddAuthentication(x =>
+            //{
+            //    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //})
+            //.AddJwtBearer(x =>
+            //{
+            //    x.RequireHttpsMetadata = true;
+            //    x.SaveToken = true;
+            //    x.TokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuerSigningKey = true,
+            //        IssuerSigningKey = new SymmetricSecurityKey(key),
+            //        ValidateIssuer = false,
+            //        ValidateAudience = false,
+            //        ClockSkew = TimeSpan.Zero
+            //    };
+            //});
+
+            services.AddMvc(config =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                                 .RequireAuthenticatedUser()
+                                 .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+                config.RespectBrowserAcceptHeader = true;
+                config.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            });
 
             services.AddSwaggerGen(c =>
             {
@@ -164,7 +195,12 @@ namespace FeedbackSystemAPI
             app.UseCors("CorsPolicy");
 
             app.UseAuthentication();
-          
+
+            app.UseCors(option => option.AllowAnyHeader()
+                                        .AllowAnyOrigin()
+                                        .AllowAnyMethod()
+            );
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

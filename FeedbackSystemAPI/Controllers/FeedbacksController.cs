@@ -52,6 +52,14 @@ namespace FeedbackSystemAPI.Controllers
             return feedback;
         }
 
+        [HttpGet("{id}/GetDevieceF")]
+        public async Task<ActionResult<Feedback>> GetDevieceF([FromQuery] string id)
+        {
+            return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
+                .Where(d => d.UserId == id).FirstAsync();
+        }
+
+
         [HttpGet("{UserId}/Feedback")]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetDevicesbys([FromQuery] string UserId)
         {
@@ -116,6 +124,8 @@ namespace FeedbackSystemAPI.Controllers
             return CreatedAtAction("GetFeedback", new { id = feedback.FeedbackId }, feedback);
         }
 
+
+       
         // DELETE: api/Feedbacks/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFeedback(string id)
