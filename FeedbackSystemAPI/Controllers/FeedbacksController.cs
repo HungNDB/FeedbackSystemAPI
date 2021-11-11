@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FeedbackSystemAPI.Models;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 
 namespace FeedbackSystemAPI.Controllers
@@ -14,11 +15,20 @@ namespace FeedbackSystemAPI.Controllers
     [ApiController]
     public class FeedbacksController : ControllerBase
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly FeedbacSystemkDBContext _context;
 
-        public FeedbacksController(FeedbacSystemkDBContext context)
+        public FeedbacksController(FeedbacSystemkDBContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        protected String GetCurrentUserId()
+        {
+            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return userId;
         }
 
         // GET: api/Feedbacks
@@ -45,10 +55,8 @@ namespace FeedbackSystemAPI.Controllers
         [HttpGet("{UserId}/Feedback")]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetDevicesbys([FromQuery] string UserId)
         {
-            return await _context.Feedbacks.Include(f => f.Device)
-                .Where(f => f.UserId == UserId).ToListAsync();
+            return await _context.Feedbacks.Where(f => f.UserId == UserId).ToListAsync();
         }
-
         // PUT: api/Feedbacks/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -85,9 +93,9 @@ namespace FeedbackSystemAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Feedback>> PostFeedback(Feedback feedback)
         {
+            feedback.UserId = GetCurrentUserId().ToString();
             feedback.DateTime = DateTime.Now.ToString();
             feedback.Status = "Pending";
-            
             _context.Feedbacks.Add(feedback);
             try
             {

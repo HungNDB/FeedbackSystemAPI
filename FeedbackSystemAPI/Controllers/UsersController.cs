@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FeedbackSystemAPI.Controllers
 {
@@ -19,12 +20,12 @@ namespace FeedbackSystemAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly FeedbacSystemkDBContext _context;
-        private readonly JWTSettings _jwtsettings;
+        private readonly JwtIssuerOptions _jwtOptions;
 
-        public UsersController(FeedbacSystemkDBContext context, IOptions<JWTSettings> jwtsettings)
+        public UsersController(FeedbacSystemkDBContext context, IOptions<JwtIssuerOptions> jwtOptions)
         {
             _context = context;
-            _jwtsettings = jwtsettings.Value;
+            _jwtOptions = jwtOptions.Value;
         }
 
         // GET: api/Users
@@ -47,17 +48,6 @@ namespace FeedbackSystemAPI.Controllers
 
             return user;
         }
-
-        [HttpGet("{UserId}/GetTaskUsers")]
-        public async Task<ActionResult<User>> GetTaskUsers([FromQuery] string UserId)
-        {
-            return await _context.Users.Include(d => d.AssignTasks).ThenInclude(AssignTask => AssignTask.Task)
-                .Where(d => d.UserId == UserId).FirstAsync();
-        }
-
-
-
-
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -92,54 +82,54 @@ namespace FeedbackSystemAPI.Controllers
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<UserWithToken>> Login([FromBody] User user)
         {
             user = await _context.Users.Where(u => u.Email == user.Email && u.Password == user.Password).FirstOrDefaultAsync();
-     
-            if(user == null)
+            if (user == null)
             {
                 return null;
             }
+            UserWithToken userWithToken = new UserWithToken(user);
 
-                UserWithToken userWithToken = new UserWithToken(user);
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtsettings.SecretKey);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var claims = new[]
             {
-                Subject = new ClaimsIdentity(new Claim[] {
-                new Claim(ClaimTypes.Name, user.Email)
-            }),
-                Expires = DateTime.UtcNow.AddMonths(6),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
-                                         SecurityAlgorithms.HmacSha256Signature)
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, await _jwtOptions.JtiGenerator())
             };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        userWithToken.AccessToken = tokenHandler.WriteToken(token);
 
+            var jwt = new JwtSecurityToken(
+                issuer: _jwtOptions.Issuer,
+                audience: _jwtOptions.Audience,
+                claims: claims,
+                notBefore: _jwtOptions.NotBefore,
+                expires: _jwtOptions.Expiration,
+                signingCredentials: _jwtOptions.SigningCredentials
+                );
+            userWithToken.AccessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
             return userWithToken;
         }
 
-    // DELETE: api/Users/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(string id)
-    {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
+        // DELETE: api/Users/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
         {
-            return NotFound();
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        private bool UserExists(string id)
+        {
+            return _context.Users.Any(e => e.UserId == id);
+        }
     }
-
-    private bool UserExists(string id)
-    {
-        return _context.Users.Any(e => e.UserId == id);
-    }
-}
 }

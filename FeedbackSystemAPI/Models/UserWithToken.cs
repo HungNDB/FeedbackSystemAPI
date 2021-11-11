@@ -12,11 +12,15 @@ namespace FeedbackSystemAPI.Models
 
         public UserWithToken(User user)
         {
-            this.UserId = user.RoleId;
+            this.UserId = user.UserId;
             this.Email = user.Email;
             this.RoleId = user.RoleId;
             this.Name = user.Name;
             this.PhoneNumber = user.PhoneNumber;
+        }
+        public UserWithToken()
+        {
+
         }
     }
 }
