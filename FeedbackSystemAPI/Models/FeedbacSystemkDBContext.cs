@@ -1,7 +1,6 @@
-﻿
+﻿using System;
 using Microsoft.EntityFrameworkCore;
-
-using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 #nullable disable
 
@@ -13,12 +12,9 @@ namespace FeedbackSystemAPI.Models
         {
         }
 
-        
-
         public FeedbacSystemkDBContext(DbContextOptions<FeedbacSystemkDBContext> options)
             : base(options)
         {
-            
         }
 
         public virtual DbSet<AssignTask> AssignTasks { get; set; }

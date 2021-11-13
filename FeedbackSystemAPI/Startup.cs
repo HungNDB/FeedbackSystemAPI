@@ -66,7 +66,7 @@ namespace FeedbackSystemAPI
 
             // Make authentication compulsory across the board (i.e. shut
             // down EVERYTHING unless explicitly opened up).
-            
+
 
             services.AddMvc(option => option.EnableEndpointRouting = false)
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
@@ -90,7 +90,7 @@ namespace FeedbackSystemAPI
                 {
                     options.AccessDeniedPath = "/Account/Forbidden/";
                     //options.LoginPath = "/Account/Unauthorized/";
-                });             
+                });
             // Configure JwtIssuerOptions
             services.Configure<JwtIssuerOptions>(options =>
             {

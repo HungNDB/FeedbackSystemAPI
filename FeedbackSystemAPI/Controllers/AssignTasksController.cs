@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FeedbackSystemAPI.Models;
+using System.Security.Claims;
 
 namespace FeedbackSystemAPI.Controllers
 {
@@ -14,10 +15,18 @@ namespace FeedbackSystemAPI.Controllers
     public class AssignTasksController : ControllerBase
     {
         private readonly FeedbacSystemkDBContext _context;
-
-        public AssignTasksController(FeedbacSystemkDBContext context)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public AssignTasksController(FeedbacSystemkDBContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        protected String GetCurrentUserId()
+        {
+            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return userId;
         }
 
         // GET: api/AssignTasks
@@ -41,10 +50,11 @@ namespace FeedbackSystemAPI.Controllers
             return assignTask;
         }
 
-        [HttpGet("{UserId}/GetTaskUsers")]
-        public async Task<ActionResult<User>> GetTaskUsers([FromQuery] string UserId)
+        [HttpGet("GetTaskUsers")]
+        public async Task<ActionResult<User>> GetTaskUsers()
         {
-            return await _context.Users.Include(d => d.AssignTasks).ThenInclude(AssignTask => AssignTask.Task)
+            string UserId = GetCurrentUserId().ToString();
+            return await _context.Users.Include(d => d.AssignTasks).ThenInclude(AssignTask => AssignTask.Task).ThenInclude(Task => Task.Feedback)
                 .Where(d => d.UserId == UserId).FirstAsync();
         }
 
