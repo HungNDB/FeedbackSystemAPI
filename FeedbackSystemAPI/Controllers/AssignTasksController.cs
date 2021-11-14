@@ -60,11 +60,13 @@ namespace FeedbackSystemAPI.Controllers
                 .Where(d => d.UserId == UserId).FirstAsync();
         }
 
+       
+
         [HttpGet("GetInfoTaskInAssingtask")]
         public async Task<ActionResult<IEnumerable<AssignTask>>> GetAss()
         {
             string UserId = GetCurrentUserId().ToString();
-            return await _context.AssignTasks.Include(d => d.Task).ThenInclude(Task => Task.Feedback)
+            return await _context.AssignTasks.Include(d => d.Task).ThenInclude(Task => Task.Feedback).ThenInclude(Feedback => Feedback.Device)
                 .Where(d => d.EmployeeId == UserId).ToListAsync();
         }
 

@@ -21,11 +21,20 @@ namespace FeedbackSystemAPI.Controllers
     {
         private readonly FeedbacSystemkDBContext _context;
         private readonly JwtIssuerOptions _jwtOptions;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UsersController(FeedbacSystemkDBContext context, IOptions<JwtIssuerOptions> jwtOptions)
+        public UsersController(FeedbacSystemkDBContext context, IOptions<JwtIssuerOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _jwtOptions = jwtOptions.Value;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        protected String GetCurrentUserId()
+        {
+            //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return userId;
         }
 
         // GET: api/Users
@@ -35,18 +44,19 @@ namespace FeedbackSystemAPI.Controllers
             return await _context.Users.ToListAsync();
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(string id)
+        [HttpGet("GetInfoUser")]
+        public async Task<ActionResult<UserInfo>> GetUser()
         {
-            var user = await _context.Users.FindAsync(id);
+            string UserId = GetCurrentUserId().ToString();
+            var userbyid = await _context.Users.FindAsync(UserId);
+            UserInfo a = new UserInfo(userbyid);
 
-            if (user == null)
+            if (a == null)
             {
                 return NotFound();
             }
 
-            return user;
+            return a;
         }
 
         // PUT: api/Users/5
