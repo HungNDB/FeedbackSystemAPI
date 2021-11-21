@@ -44,19 +44,29 @@ namespace FeedbackSystemAPI.Controllers
             return await _context.Users.ToListAsync();
         }
 
+        //[HttpGet("GetInfoUser")]
+        //public async Task<ActionResult<UserInfo>> GetUser()
+        //{
+        //    string UserId = GetCurrentUserId().ToString();
+        //    var userbyid = await _context.Users.FindAsync(UserId);
+        //    UserInfo a = new UserInfo(userbyid);
+
+        //    if (a == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return a;
+        //}
+
         [HttpGet("GetInfoUser")]
-        public async Task<ActionResult<UserInfo>> GetUser()
+        public async Task<ActionResult<IEnumerable<User>>> GetUser()
         {
             string UserId = GetCurrentUserId().ToString();
-            var userbyid = await _context.Users.FindAsync(UserId);
-            UserInfo a = new UserInfo(userbyid);
+          
+           
 
-            if (a == null)
-            {
-                return NotFound();
-            }
-
-            return a;
+            return await _context.Users.Where(d => d.UserId == UserId).ToListAsync();
         }
 
         // PUT: api/Users/5

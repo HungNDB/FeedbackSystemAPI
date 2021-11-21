@@ -39,6 +39,28 @@ namespace FeedbackSystemAPI.Controllers
                         .ToListAsync();
         }
 
+        [HttpGet("GetFeedbackAll")]
+        public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbackAll()
+        {
+            return await _context.Feedbacks.ToListAsync();
+        }
+
+        [HttpGet("GetFeedbacksCompleted")]
+        public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacksCompleted()
+        {
+            return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
+                        .Where(f => f.Status == "Completed")
+                        .ToListAsync();
+        }
+
+        [HttpGet("GetFeedbacksProcessing")]
+        public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacksProcessing()
+        {
+            return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
+                        .Where(f => f.Status == "Processing")
+                        .ToListAsync();
+        }
+
         // GET: api/Feedbacks/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Feedback>> GetFeedback(string id)
@@ -66,15 +88,51 @@ namespace FeedbackSystemAPI.Controllers
         {
             return await _context.Feedbacks.Where(f => f.UserId == UserId).ToListAsync();
         }
+
         // PUT: api/Feedbacks/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPut("{id}/UpdateCompleted")]
         public async Task<IActionResult> PutFeedback(string id, Feedback feedback)
         {
+
             if (id != feedback.FeedbackId)
             {
                 return BadRequest();
             }
+
+            feedback.Status = "Completed";
+
+            _context.Entry(feedback).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!FeedbackExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut("{id}/UpdateProcessing")]
+        public async Task<IActionResult> PutFeedbackProcessing(string id, Feedback feedback)
+        {
+
+            if (id != feedback.FeedbackId)
+            {
+                return BadRequest();
+            }
+
+            feedback.Status = "Processing";
 
             _context.Entry(feedback).State = EntityState.Modified;
 
