@@ -92,8 +92,10 @@ namespace FeedbackSystemAPI.Controllers
         // PUT: api/Feedbacks/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}/UpdateCompleted")]
-        public async Task<IActionResult> PutFeedback(string id, Feedback feedback)
+        public async Task<IActionResult> PutFeedback(string id)
         {
+            var feedback = await _context.Feedbacks.FindAsync(id);
+            
 
             if (id != feedback.FeedbackId)
             {
@@ -124,8 +126,9 @@ namespace FeedbackSystemAPI.Controllers
         }
 
         [HttpPut("{id}/UpdateProcessing")]
-        public async Task<IActionResult> PutFeedbackProcessing(string id, Feedback feedback)
+        public async Task<IActionResult> PutFeedbackProcessing(string id)
         {
+            var feedback = await _context.Feedbacks.FindAsync(id);
 
             if (id != feedback.FeedbackId)
             {
