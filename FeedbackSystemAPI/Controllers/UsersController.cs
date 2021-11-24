@@ -69,6 +69,15 @@ namespace FeedbackSystemAPI.Controllers
             return await _context.Users.Where(d => d.UserId == UserId).ToListAsync();
         }
 
+        [HttpGet("GetEmp")]
+        public async Task<ActionResult<IEnumerable<User>>> GetEmp()
+        {
+           
+            return await _context.Users
+                .Where(a => a.RoleId == "1")
+                .ToListAsync();
+        }
+
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -106,7 +115,9 @@ namespace FeedbackSystemAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<UserWithToken>> Login([FromBody] User user)
         {
-            user = await _context.Users.Where(u => u.Email == user.Email && u.Password == user.Password).FirstOrDefaultAsync();
+            user = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Email == user.Email && u.Password == user.Password).FirstOrDefaultAsync();
             if (user == null)
             {
                 return null;

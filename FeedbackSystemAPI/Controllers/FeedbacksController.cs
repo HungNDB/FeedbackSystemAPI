@@ -61,6 +61,14 @@ namespace FeedbackSystemAPI.Controllers
                         .ToListAsync();
         }
 
+        [HttpGet("GetFeedbacksPending")]
+        public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacksPending()
+        {
+            return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
+                        .Where(f => f.Status == "Pending")
+                        .ToListAsync();
+        }
+
         // GET: api/Feedbacks/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Feedback>> GetFeedback(string id)

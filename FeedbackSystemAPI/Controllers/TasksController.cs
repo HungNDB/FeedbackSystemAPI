@@ -42,6 +42,30 @@ namespace FeedbackSystemAPI.Controllers
             return task;
         }
 
+        [HttpGet("GetTaskCompleted")]
+        public async Task<ActionResult<IEnumerable<Task>>> GetTaskCompleted()
+        {
+            return await _context.Tasks
+                        .Where(f => f.Status == "Completed")
+                        .ToListAsync();
+        }
+
+        [HttpGet("GetTaskProcessing")]
+        public async Task<ActionResult<IEnumerable<Task>>> GetTaskProcessing()
+        {
+             return await _context.Tasks
+                        .Where(f => f.Status == "Processing")
+                        .ToListAsync();
+        }
+
+        [HttpGet("GetTaskPending")]
+        public async Task<ActionResult<IEnumerable<Task>>> GetFeedbacksPending()
+        {
+            return await _context.Tasks
+                        .Where(f => f.Status == "Pending")
+                        .ToListAsync();
+        }
+
         // PUT: api/Tasks/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -73,11 +97,42 @@ namespace FeedbackSystemAPI.Controllers
             return NoContent();
         }
 
+
+
         // POST: api/Tasks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Models.Task>> PostTask(Task task)
         {
+            task.DateTime = DateTime.Now.ToString();
+            task.Status = "Pending";
+            _context.Tasks.Add(task);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (TaskExists(task.TaskId))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return CreatedAtAction("GetTask", new { id = task.TaskId }, task);
+        }
+
+        [HttpPost("{idFeedback}/PostTaskByFbID")]
+        public async Task<ActionResult<Models.Task>> PostTaskByFbID(string idFb)
+        {
+            Task task = new Task();
+            task.FeedbackId = idFb;
+            task.DateTime = DateTime.Now.ToString();
+            task.Status = "Pending";
             _context.Tasks.Add(task);
             try
             {

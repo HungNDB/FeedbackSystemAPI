@@ -9,7 +9,7 @@ namespace FeedbackSystemAPI.Models
     {
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
-
+        
         public UserWithToken(User user)
         {
             this.UserId = user.UserId;
@@ -17,7 +17,8 @@ namespace FeedbackSystemAPI.Models
             this.RoleId = user.RoleId;
             this.Name = user.Name;
             this.PhoneNumber = user.PhoneNumber;
-        }
+           
+    }
         public UserWithToken()
         {
 

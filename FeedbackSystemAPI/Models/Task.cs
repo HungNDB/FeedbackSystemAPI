@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
@@ -11,7 +12,7 @@ namespace FeedbackSystemAPI.Models
         {
             AssignTasks = new HashSet<AssignTask>();
         }
-
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string TaskId { get; set; }
         public string FeedbackId { get; set; }
         public string Status { get; set; }
