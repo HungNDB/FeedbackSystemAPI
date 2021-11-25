@@ -54,5 +54,7 @@ namespace FeedbackSystemAPI.Services
             await smtp.SendAsync(email);
             smtp.Disconnect(true);
         }
+
+
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FeedbackSystemAPI.Models;
 using System.Security.Claims;
+using FeedbackSystemAPI.Services;
 
 namespace FeedbackSystemAPI.Controllers
 {
@@ -14,12 +15,14 @@ namespace FeedbackSystemAPI.Controllers
     [ApiController]
     public class AssignTasksController : ControllerBase
     {
+        private readonly IMailService mailService;
         private readonly FeedbacSystemkDBContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public AssignTasksController(FeedbacSystemkDBContext context, IHttpContextAccessor httpContextAccessor)
+        public AssignTasksController(FeedbacSystemkDBContext context, IHttpContextAccessor httpContextAccessor, IMailService mailService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            this.mailService = mailService;
         }
 
         protected String GetCurrentUserId()
@@ -104,23 +107,34 @@ namespace FeedbackSystemAPI.Controllers
 
         // POST: api/AssignTasks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("{idTask}/{ididEmp}/CreatAssignTask")]
+        [HttpPost("{idTask}/{ididEmp}/{idFb}/CreatAssignTask")]
         public async Task<ActionResult<AssignTask>> CreatAssignTask(string idTask, string idEmp)
         {
             AssignTask assignTask = new AssignTask();
             assignTask.TaskId = idTask;
             assignTask.EmployeeId = idEmp;
 
+            var userbyid = await _context.Users.FindAsync(idEmp);
+            string toMail = userbyid.Email;
+
+            var fb = await _context.Tasks.Include(d => d.Feedback).ThenInclude(d => d.Device).ThenInclude(d => d.Location)
+                .Where(d => d.TaskId == idTask).FirstAsync();
+
+            string bodyMess = "Thiết bị: " + fb.Feedback.Device.Name + " Tại : " +
+                fb.Feedback.Device.Location.LocatitonName + " có vấn đề, hư hỏng, không sử dụng được và cần bạn đến xem sét và sửa chữa";
+
             _context.AssignTasks.Add(assignTask);
             try
             {
                 await _context.SaveChangesAsync();
+                await mailService.SendEmailAsync(toMail, bodyMess);
             }
             catch (DbUpdateException)
             {
                 if (AssignTaskExists(assignTask.AssignId))
                 {
                     return Conflict();
+                    
                 }
                 else
                 {

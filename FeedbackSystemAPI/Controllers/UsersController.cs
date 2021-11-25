@@ -63,9 +63,7 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUser()
         {
             string UserId = GetCurrentUserId().ToString();
-          
-           
-
+                  
             return await _context.Users.Where(d => d.UserId == UserId).ToListAsync();
         }
 

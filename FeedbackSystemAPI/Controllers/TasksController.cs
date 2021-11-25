@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FeedbackSystemAPI.Models;
 using Task = FeedbackSystemAPI.Models.Task;
+using FeedbackSystemAPI.Services;
 
 namespace FeedbackSystemAPI.Controllers
 {
@@ -15,10 +16,11 @@ namespace FeedbackSystemAPI.Controllers
     public class TasksController : ControllerBase
     {
         private readonly FeedbacSystemkDBContext _context;
-
-        public TasksController(FeedbacSystemkDBContext context)
+        private readonly IMailService mailService;
+        public TasksController(FeedbacSystemkDBContext context, IMailService mailService)
         {
             _context = context;
+            this.mailService = mailService;
         }
 
         // GET: api/Tasks
@@ -137,6 +139,7 @@ namespace FeedbackSystemAPI.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                
             }
             catch (DbUpdateException)
             {
