@@ -42,14 +42,15 @@ namespace FeedbackSystemAPI.Controllers
         [HttpGet("GetFeedbackAll")]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbackAll()
         {
-            return await _context.Feedbacks.ToListAsync();
+            return await _context.Feedbacks.Where(f => f.IsDelete != "true")
+                .ToListAsync();
         }
 
         [HttpGet("GetFeedbacksCompleted")]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacksCompleted()
         {
             return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
-                        .Where(f => f.Status == "Completed")
+                        .Where(f => f.Status == "Completed" && f.IsDelete != "true")
                         .ToListAsync();
         }
 
@@ -57,7 +58,7 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacksProcessing()
         {
             return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
-                        .Where(f => f.Status == "Processing")
+                        .Where(f => f.Status == "Processing" && f.IsDelete != "true")
                         .ToListAsync();
         }
 
@@ -65,7 +66,7 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacksPending()
         {
             return await _context.Feedbacks.Include(d => d.Device).ThenInclude(Device => Device.Location)
-                        .Where(f => f.Status == "Pending")
+                        .Where(f => f.Status == "Pending" && f.IsDelete != "true")
                         .ToListAsync();
         }
 
@@ -90,11 +91,19 @@ namespace FeedbackSystemAPI.Controllers
                 .Where(d => d.UserId == id).FirstAsync();
         }
 
+        
 
         [HttpGet("{UserId}/Feedback")]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetDevicesbys([FromQuery] string UserId)
         {
             return await _context.Feedbacks.Where(f => f.UserId == UserId).ToListAsync();
+        }
+
+        [HttpGet("GetFeedbackUser")]
+        public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbackUser()
+        {
+            string UserId = GetCurrentUserId().ToString();
+            return await _context.Feedbacks.Where(f => f.UserId == UserId && f.IsDelete != "true").ToListAsync();
         }
 
         // PUT: api/Feedbacks/5
@@ -201,13 +210,31 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<IActionResult> DeleteFeedback(string id)
         {
             var feedback = await _context.Feedbacks.FindAsync(id);
-            if (feedback == null)
+
+            if (id != feedback.FeedbackId)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            _context.Feedbacks.Remove(feedback);
-            await _context.SaveChangesAsync();
+            feedback.IsDelete = "true";
+
+            _context.Entry(feedback).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!FeedbackExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return NoContent();
         }

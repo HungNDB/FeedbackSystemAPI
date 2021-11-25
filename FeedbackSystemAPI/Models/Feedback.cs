@@ -20,6 +20,8 @@ namespace FeedbackSystemAPI.Models
         public string Status { get; set; }
         public string CustomerName { get; set; }
         public string DateTime { get; set; }
+        public string IsDelete { get; set; }
+
 
         public virtual Device Device { get; set; }
         public virtual User User { get; set; }
