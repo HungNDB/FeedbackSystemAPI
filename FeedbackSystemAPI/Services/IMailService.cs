@@ -9,6 +9,6 @@ namespace FeedbackSystemAPI.Services
 {
     public interface IMailService
     {
-        Task SendEmailAsync(MailRequest mailRequest);
+        Task SendEmailAsync(string toMail, string bodyMess);
     }
 }

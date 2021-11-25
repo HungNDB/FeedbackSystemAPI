@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Task = System.Threading.Tasks.Task;
+using System;
 
 namespace FeedbackSystemAPI.Services
 {
@@ -16,8 +17,14 @@ namespace FeedbackSystemAPI.Services
         {
             _mailSettings = mailSettings.Value;
         }
-        public async Task SendEmailAsync(MailRequest mailRequest)
+        public async Task SendEmailAsync(string toMail, string bodyMess)
         {
+            string eTime = DateTime.Now.ToString(); 
+            MailRequest mailRequest = new MailRequest();
+            mailRequest.ToEmail = toMail;
+            mailRequest.Subject = " Có nhiệm vụ mới cho bạn tại " + eTime;
+            mailRequest.Body = bodyMess;
+
             var email = new MimeMessage();
             email.Sender = MailboxAddress.Parse(_mailSettings.Mail);
             email.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
