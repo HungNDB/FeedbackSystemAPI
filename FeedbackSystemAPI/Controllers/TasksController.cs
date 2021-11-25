@@ -48,7 +48,7 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<ActionResult<IEnumerable<Task>>> GetTaskCompleted()
         {
             return await _context.Tasks
-                        .Where(f => f.Status == "Completed")
+                        .Where(f => f.Status == "Completed" && f.IsDelete != "true")
                         .ToListAsync();
         }
 
@@ -56,7 +56,7 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<ActionResult<IEnumerable<Task>>> GetTaskProcessing()
         {
              return await _context.Tasks
-                        .Where(f => f.Status == "Processing")
+                        .Where(f => f.Status == "Processing" && f.IsDelete != "true")
                         .ToListAsync();
         }
 
@@ -64,7 +64,7 @@ namespace FeedbackSystemAPI.Controllers
         public async Task<ActionResult<IEnumerable<Task>>> GetFeedbacksPending()
         {
             return await _context.Tasks
-                        .Where(f => f.Status == "Pending")
+                        .Where(f => f.Status == "Pending" && f.IsDelete != "true")
                         .ToListAsync();
         }
 
@@ -160,20 +160,35 @@ namespace FeedbackSystemAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(string id)
         {
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null)
+            var t = await _context.Tasks.FindAsync(id);
+
+            if (id != t.TaskId)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
+            t.IsDelete = "true";
+
+            _context.Entry(t).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TaskExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return NoContent();
         }
-
-
-
 
         private bool TaskExists(string id)
         {

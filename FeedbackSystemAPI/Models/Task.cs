@@ -17,6 +17,7 @@ namespace FeedbackSystemAPI.Models
         public string FeedbackId { get; set; }
         public string Status { get; set; }
         public string DateTime { get; set; }
+        public string IsDelete { get; set; }
 
         public virtual Feedback Feedback { get; set; }
         public virtual ICollection<AssignTask> AssignTasks { get; set; }

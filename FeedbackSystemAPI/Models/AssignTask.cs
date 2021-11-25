@@ -12,7 +12,7 @@ namespace FeedbackSystemAPI.Models
         public string AssignId { get; set; }
         public string TaskId { get; set; }
         public string EmployeeId { get; set; }
-
+        public string IsDelete { get; set; }
         public virtual User Employee { get; set; }
         public virtual Task Task { get; set; }
     }

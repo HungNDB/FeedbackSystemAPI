@@ -36,14 +36,16 @@ namespace FeedbackSystemAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AssignTask>>> GetAssignTasks()
         {
-            return await _context.AssignTasks.ToListAsync();
+            return await _context.AssignTasks.Where(d => d.IsDelete != "true")
+                .ToListAsync();
         }
 
         // GET: api/AssignTasks/5
         [HttpGet("{id}")]
         public async Task<ActionResult<AssignTask>> GetAssignTask(string id)
         {
-            var assignTask = await _context.AssignTasks.FindAsync(id);
+            var assignTask = await _context.AssignTasks.Where(d => d.EmployeeId == id && d.IsDelete != "true")
+                .MinAsync();
 
             if (assignTask == null)
             {
@@ -53,24 +55,13 @@ namespace FeedbackSystemAPI.Controllers
             return assignTask;
         }
 
-        [HttpGet("GetTaskUsers")]
-        public async Task<ActionResult<User>> GetTaskUsers()
-        {
-            string UserId = GetCurrentUserId().ToString();
-            return await _context.Users.Include(d => d.AssignTasks).ThenInclude(AssignTask => AssignTask.Task)
-                .ThenInclude(Task => Task.Feedback)
-                .ThenInclude(Feedback => Feedback.Device)
-                .Where(d => d.UserId == UserId).FirstAsync();
-        }
-
-       
-
+    
         [HttpGet("GetInfoTaskInAssingtask")]
         public async Task<ActionResult<IEnumerable<AssignTask>>> GetAss()
         {
             string UserId = GetCurrentUserId().ToString();
             return await _context.AssignTasks.Include(d => d.Task).ThenInclude(Task => Task.Feedback).ThenInclude(Feedback => Feedback.Device)
-                .Where(d => d.EmployeeId == UserId).ToListAsync();
+                .Where(d => d.EmployeeId == UserId && d.IsDelete != "true").ToListAsync();
         }
 
 
@@ -149,14 +140,32 @@ namespace FeedbackSystemAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAssignTask(string id)
         {
-            var assignTask = await _context.AssignTasks.FindAsync(id);
-            if (assignTask == null)
+            var t = await _context.AssignTasks.FindAsync(id);
+
+            if (id != t.AssignId)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            _context.AssignTasks.Remove(assignTask);
-            await _context.SaveChangesAsync();
+            t.IsDelete = "true";
+
+            _context.Entry(t).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!AssignTaskExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return NoContent();
         }

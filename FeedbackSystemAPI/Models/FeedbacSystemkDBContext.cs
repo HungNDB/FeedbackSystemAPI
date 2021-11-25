@@ -58,6 +58,8 @@ namespace FeedbackSystemAPI.Models
                     .HasMaxLength(50)
                     .HasColumnName("TaskID");
 
+                entity.Property(e => e.IsDelete).HasMaxLength(50);
+
                 entity.HasOne(d => d.Employee)
                     .WithMany(p => p.AssignTasks)
                     .HasForeignKey(d => d.EmployeeId)
@@ -175,6 +177,8 @@ namespace FeedbackSystemAPI.Models
                     .HasColumnName("FeedbackID");
 
                 entity.Property(e => e.Status).HasMaxLength(50);
+
+                entity.Property(e => e.IsDelete).HasMaxLength(50);
 
                 entity.HasOne(d => d.Feedback)
                     .WithMany(p => p.Tasks)
