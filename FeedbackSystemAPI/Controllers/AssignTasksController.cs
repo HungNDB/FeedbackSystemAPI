@@ -104,11 +104,13 @@ namespace FeedbackSystemAPI.Controllers
 
         // POST: api/AssignTasks
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<AssignTask>> PostAssignTask(AssignTask assignTask)
+        [HttpPost("{idTask}/{ididEmp}/CreatAssignTask")]
+        public async Task<ActionResult<AssignTask>> CreatAssignTask(string idTask, string idEmp)
         {
-            
-           
+            AssignTask assignTask = new AssignTask();
+            assignTask.TaskId = idTask;
+            assignTask.EmployeeId = idEmp;
+
             _context.AssignTasks.Add(assignTask);
             try
             {

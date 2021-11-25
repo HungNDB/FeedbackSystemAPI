@@ -19,7 +19,10 @@ using System;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Newtonsoft.Json;
+using FeedbackSystemAPI.Services;
 
 namespace FeedbackSystemAPI
 {
@@ -109,6 +112,9 @@ namespace FeedbackSystemAPI
             services.AddControllers();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddDbContext<FeedbacSystemkDBContext>();
+
+            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
+            services.AddTransient<IMailService, Services.MailService>();
 
             var jwtSection = Configuration.GetSection("JWTSettings");
             services.Configure<JWTSettings>(jwtSection);
